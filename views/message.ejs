@@ -1,0 +1,26 @@
+<% include partials/header %>
+<% include partials/menu %>
+<h1>Send us a message</h1>
+    <form method="post" action="/msg">
+       <label>Your EMail address</label><br/>
+       <input type="input" placeholder="blah@blahs.com"name="msgEmail"/><br/>
+       <label>Message:</label><br/>
+       <input type="input" name="msgText"/><br/>
+       <input type="submit" value="submit"/>
+    </form>
+<hr/>
+<div>
+    <ul class="msg">
+       <% messages.forEach(function(message) {%>
+          <li class="msg">
+             From: <%=message.msgEmail%>><br/>
+             Message:<%=message.msgText%> &nbsp;
+                <form method="post" action="/msg">
+                   <input type="hidden" name="msgId" value="<%=message._id%>"/>
+                   <input type="submit" value="-"/>
+               </form>
+          </li>
+       <%})%>
+    </ul>
+</div>
+<% include partials/footer %>

@@ -1,0 +1,86 @@
+<% include partials/header %>
+<% include partials/menu %>
+<script>
+    
+    // function to set the action name and id of items, and submit actionForm
+    function doAction(actionName, itemId) {
+       console.log("submitting actionForm with values: actionName="+actionName+"  itemId:"+itemId);
+       var theForm = document.forms["actionForm"];
+       theForm["actionName"].value = actionName;
+       theForm["shoeId"].value = itemId;
+       theForm.submit();
+    }
+
+    function doEdit(itemId) {
+         var mainForm = document.forms["mainForm"];
+         var brand = document.getElementById("brand_"+itemId);
+         var shoeType = document.getElementById("shoeType_"+itemId);
+         var heelType = document.getElementById("heelType_"+itemId);
+         
+         mainForm["actionName"].value = 'update';
+         mainForm["shoeId"].value = itemId;
+         mainForm["brand"].value = brand.textContent;
+         mainForm["shoeType"].value = shoeType.textContent;
+         mainForm["heelType"].value = heelType.textContent;
+         mainForm["submit"].value="Save changes";
+    }
+    function clearMainForm() {
+         var mainForm = document.forms["mainForm"];
+         mainForm["actionName"].value = 'add';
+         mainForm["shoeId"].value = "";
+         mainForm["brand"].value = "";
+         mainForm["shoeType"].value ="";
+         mainForm["heelType"].value = "";
+         mainForm["submit"].value="Add Shoe";
+    }
+
+</script>
+<h1>Add/Modify/Delete Shoes</h1>
+ <% if(errMsg!="") { %>
+      <div class="error">
+      <%=errMsg%>
+      </div>
+    <%}   %>
+    <form name="mainForm" method="post" action="/shoes">
+       <input type="hidden" name="actionName" value="add"/>
+       <input type="hidden" name="shoeId" value=""/>
+       <label>Shoe Type</label><br/>
+       <input id="shoeType" type="input" placeholder="i.e. wedge, Sandal, etc" name="shoeType"/><br/>
+       <label>Heel Type:</label><br/>
+       <input id="heelType"  type="input" name="heelType" placeholder="flats, 1 inch, wedge, etc"/><br/>
+       <label>Brand:</label><br/>
+       <input id="brand" type="input" name="brand" placeholder="enter brand, or Unknowm"/><br/>
+       <input type="submit" name="submit" value="Add Shoe"/>
+       &nbsp;&nbsp;<button onclick="clearMainForm();return false;">Cancel</button>
+    </form>
+<hr/>
+<div>
+    <table>
+      <tr class="header">
+       <td>Brand</td>
+       <td>Type</td>
+       <td>Heel</td>
+      </tr>
+       <% shoes.forEach(function(shoe) {%>
+          <tr class="data">
+            <td id="brand_<%=shoe._id%>"><%=shoe.brand%></td>
+            <td id="shoeType_<%=shoe._id%>"><%=shoe.shoeType%></td>
+            <td id="heelType_<%=shoe._id%>"><%=shoe.heelType%></td>
+            <td class="button">
+                   <button onclick="doAction('selete','<%=shoe._id%>');">delete</button>
+            </td>
+            <td class="button">
+                   <button onclick="doEdit('<%=shoe._id%>');">modify</button>
+            </td>
+          </tr>
+       <%})%>
+    </table>
+    <div style="display:hidden" id="hiddenDiv1">
+                <form id="actionForm" method="post" action="/shoes">
+                   <input type="hidden" name="actionName" value=""/>
+                   <input type="hidden" name="shoeId" value=""/>
+               </form>
+   
+    </div>
+</div>
+<% include partials/footer %>

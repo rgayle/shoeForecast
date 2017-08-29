@@ -1,0 +1,10 @@
+
+<div>
+    <ul class="nav">
+       <% menu.forEach(function(menuItem) {%>
+          <li class="nav">
+              <a href="/<%=menuItem.url%>"><%=menuItem.name %></a>
+          </li>
+       <%})%>
+    </ul>
+</div>
