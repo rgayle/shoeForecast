@@ -1,0 +1,165 @@
+<% include partials/header %>
+
+<% include partials/jquery.js %>
+<% include partials/menu %>
+<script>
+    
+    function hideErrDiv() {
+        $("#errDiv").css("display","none");
+    }
+
+    // function to set the action name and id of items, and submit actionForm
+
+
+    function doAction(actionName, itemId) {
+       var url="/"+actionName+"Shoe/shoeId/"+itemId;
+
+       console.log("doAction posting to URL: "+url);
+       var theForm = document.forms["actionForm"];
+       theForm["actionName"].value = actionName;
+       theForm["shoeId"].value = itemId;
+       //theForm.submit();
+       $.post(url,{}, function(data,status) {
+             showErrMsg(data.errMsg);
+
+       })
+    }
+
+    function doEdit(itemId) {
+         var mainForm = document.forms["mainForm"];
+         var brand = document.getElementById("brand_"+itemId);
+         var shoeType = document.getElementById("shoeType_"+itemId);
+         var heelType = document.getElementById("heelType_"+itemId);
+         
+         mainForm["actionName"].value = 'update';
+         mainForm["shoeId"].value = itemId;
+         mainForm["brand"].value = brand.textContent;
+         mainForm["shoeType"].value = shoeType.textContent;
+         mainForm["heelType"].value = heelType.textContent;
+         mainForm["submit"].value="Save changes";
+    }
+    function clearMainForm() {
+         var mainForm = document.forms["mainForm"];
+         mainForm["actionName"].value = 'add';
+         mainForm["shoeId"].value = "";
+         mainForm["brand"].value = "";
+         mainForm["shoeType"].value ="";
+         mainForm["heelType"].value = "";
+         mainForm["submit"].value="Add Shoe";
+    }
+    
+    function showErrMsg(errMsg) {
+       var errSpan = document.getElementById("errMsg");
+       var errDiv = document.getElementById("errDiv");
+       errDiv.style.display=""
+       errSpan.innerHTML=errMsg;
+    }
+
+    /* In the previous version, the shoes listing was built on the server and that html was sent to the browser
+     * In this version, the server only passes us the data in JSON format, and we have to build the table, in the browser
+     * We will use JQuery to make this easier.
+     * 
+     * Note, we could have done it in plain javascript, but we want to be able
+     * to deal with handle peculiarities of the various browser, and that is one of the benefits of using JQuery.
+     */
+    function paintShoes(shoeArray) {
+        if(shoeArray) {
+           var table = $('<table>');
+           var shoeCnt = shoeArray.length;
+           for(let i=0; i<shoeCnt; i++){
+              let shoeId=shoeArray[i]._id;
+              var row = $('<tr>');
+              row.append( $('<td>',
+                {
+                  id: "brand_"+shoeId,
+                  text: shoeArray[i].brand
+                })
+              );
+
+              row.append( $('<td>',
+                {
+                  id:"shoeType_"+shoeId,
+                  text:shoeArray[i].shoeType
+                })
+              );
+
+              row.append( $('<td>',
+                {
+                   id: "heelType_"+shoeId,
+                   text:shoeArray[i].heelType
+                })
+              );
+
+              var btnTd1 =  $('<td>');
+              var btnTd2 =  $('<td>');
+              var btn1 =  $('<button>delete</button>').click(function() {
+                   doAction('delete',""+shoeId+"");          
+              });
+              var btn2 =  $('<button>modify</button>').click(function() {
+                   doEdit(""+shoeId+"");          
+              });
+              btnTd1.append(btn1);
+              btnTd2.append(btn2);
+
+              row.append(btnTd1);
+              row.append(btnTd2);
+              table.append(row);
+           }
+          $('#tableDiv').append(table);
+        }
+    }
+</script>
+<h1>Add/Modify/Delete Shoes</h1>
+      <div id="errDiv" class="error">
+      <span id="errMsg"></>
+      </div>
+    <form name="mainForm" method="post" action="/shoes">
+       <input type="hidden" name="actionName" value="add"/>
+       <input type="hidden" name="shoeId" value=""/>
+       <label>Shoe Type</label><br/>
+       <input id="shoeType" type="input" placeholder="i.e. wedge, Sandal, etc" name="shoeType"/><br/>
+       <label>Heel Type:</label><br/>
+       <input id="heelType"  type="input" name="heelType" placeholder="flats, 1 inch, wedge, etc"/><br/>
+       <label>Brand:</label><br/>
+       <input id="brand" type="input" name="brand" placeholder="enter brand, or Unknowm"/><br/>
+       <input type="submit" 
+          onclick="doAction(document.forms.mainForm['actionName'].value,document.forms.mainForm['shoeId'].value);
+          return false;" name="submit" value="Add Shoe"/>
+       &nbsp;&nbsp;<button onclick="clearMainForm();return false;">Cancel</button>
+    </form>
+<hr/>
+<div id="tableDiv">
+  <!-- Table will be created here -->
+    <div style="display:hidden" id="hiddenDiv1">
+                <form id="actionForm" method="post" action="/shoes">
+                   <input type="hidden" name="actionName" value=""/>
+                   <input type="hidden" name="shoeId" value=""/>
+               </form>
+   
+    </div>
+</div>
+<script>
+    /*  When the page is loaded, then we want to do a couple of things
+        - hide the Error message area "errDiv"
+        - get the shoe listing from the server
+         
+     */
+    document.onreadystatechange =()=> {
+      if (document.readyState ==='interactive') {
+         hideErrDiv();
+         $.get('getShoeListing',function(data,status) {
+              //if there is an error message, then display it
+              if (data.errMsg) {
+                 showErrMsg(data.errMsg);
+              }
+
+              //If their are shoes, then show them
+              if (data.shoes) {
+                 paintShoes(data.shoes);
+              }
+         })
+      }
+    }
+
+</script>
+<% include partials/footer %>
